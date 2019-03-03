@@ -13,8 +13,9 @@ namespace WinTail
         {
             MyActorSystem = ActorSystem.Create("MyActorSystem");
 
-            var consoleWriterActor = MyActorSystem.ActorOf(Props.Create(() => new ConsoleWriterActor()));
-            var consoleReaderActor = MyActorSystem.ActorOf(Props.Create(() => new ConsoleReaderActor(consoleWriterActor)));
+            var consoleWriterActor = MyActorSystem.ActorOf(ConsoleWriterActor.Props(), "consoleWriterActor");
+            var validationActor = MyActorSystem.ActorOf(ValidationActor.Props(consoleWriterActor), "validationActor");
+            var consoleReaderActor = MyActorSystem.ActorOf(ConsoleReaderActor.Props(validationActor), "consoleReaderActor");
 
             consoleReaderActor.Tell(ConsoleReaderActor.StartCommand);
 

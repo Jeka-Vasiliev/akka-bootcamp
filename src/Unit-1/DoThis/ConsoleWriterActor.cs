@@ -30,5 +30,7 @@ namespace WinTail
 
             Console.ResetColor();
         }
+
+        public static Props Props() => Akka.Actor.Props.Create<ConsoleWriterActor>();
     }
 }
