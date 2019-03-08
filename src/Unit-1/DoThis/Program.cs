@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Akka.Actor;
 
 namespace WinTail
@@ -14,8 +13,9 @@ namespace WinTail
             MyActorSystem = ActorSystem.Create("MyActorSystem");
 
             var consoleWriterActor = MyActorSystem.ActorOf(ConsoleWriterActor.Props(), "consoleWriterActor");
-            var validationActor = MyActorSystem.ActorOf(ValidationActor.Props(consoleWriterActor), "validationActor");
-            var consoleReaderActor = MyActorSystem.ActorOf(ConsoleReaderActor.Props(validationActor), "consoleReaderActor");
+            var tailCoordinatorActor = MyActorSystem.ActorOf(TailCoordinatorActor.Props(), "tailCoordinatorActor");
+            var fileValidatorActor = MyActorSystem.ActorOf(FileValidatorActor.Props(consoleWriterActor, tailCoordinatorActor), "fileValidatorActor");
+            var consoleReaderActor = MyActorSystem.ActorOf(ConsoleReaderActor.Props(fileValidatorActor), "consoleReaderActor");
 
             consoleReaderActor.Tell(ConsoleReaderActor.StartCommand);
 
