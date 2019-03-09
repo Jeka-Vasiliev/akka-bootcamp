@@ -24,7 +24,7 @@ namespace WinTail
                     break;
 
                 default:
-                    Console.WriteLine(message);
+                    Console.Write(message);
                     break;
             }
 
