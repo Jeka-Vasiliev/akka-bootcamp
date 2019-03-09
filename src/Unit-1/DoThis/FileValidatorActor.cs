@@ -9,12 +9,10 @@ namespace WinTail
     public class FileValidatorActor : UntypedActor
     {
         private readonly IActorRef _consoleWriterActor;
-        private readonly IActorRef _tailCoordinatorActor;
 
-        public FileValidatorActor(IActorRef consoleWriterActor, IActorRef tailCoordinatorActor)
+        public FileValidatorActor(IActorRef consoleWriterActor)
         {
             _consoleWriterActor = consoleWriterActor;
-            _tailCoordinatorActor = tailCoordinatorActor;
         }
 
         protected override void OnReceive(object message)
@@ -22,11 +20,8 @@ namespace WinTail
             var msg = message as string;
             if (string.IsNullOrEmpty(msg))
             {
-                // signal that the user needs to supply an input
                 _consoleWriterActor.Tell(new Messages.NullInputError("Input was blank. Please try again.\n"));
 
-                // tell sender to continue doing its thing (whatever that may be,
-                // this actor doesn't care)
                 Sender.Tell(new Messages.ContinueProcessing());
             }
             else
@@ -34,34 +29,24 @@ namespace WinTail
                 var valid = IsFileUri(msg);
                 if (valid)
                 {
-                    // signal successful input
-                    _consoleWriterActor.Tell(new Messages.InputSuccess(
-                        string.Format("Starting processing for {0}", msg)));
+                    _consoleWriterActor.Tell(new Messages.InputSuccess($"Starting processing for {msg}"));
 
-                    // start coordinator
-                    _tailCoordinatorActor.Tell(new TailCoordinatorActor.StartTail(msg,
-                        _consoleWriterActor));
+                    Context.ActorSelection("akka://MyActorSystem/user/tailCoordinatorActor").Tell(
+                        new TailCoordinatorActor.StartTail(msg, _consoleWriterActor)
+                    );
                 }
                 else
                 {
-                    // signal that input was bad
-                    _consoleWriterActor.Tell(new Messages.ValidationError(
-                        string.Format("{0} is not an existing URI on disk.", msg)));
+                    _consoleWriterActor.Tell(new Messages.ValidationError($"{msg} is not an existing URI on disk."));
 
-                    // tell sender to continue doing its thing (whatever that
-                    // may be, this actor doesn't care)
                     Sender.Tell(new Messages.ContinueProcessing());
                 }
             }
         }
 
-        public static Props Props(IActorRef consoleWriterActor, IActorRef tailCoordinatorActor) =>
-            Akka.Actor.Props.Create(() => new FileValidatorActor(consoleWriterActor, tailCoordinatorActor));
-        /// <summary>
-        /// Checks if file exists at path provided by user.
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        public static Props Props(IActorRef consoleWriterActor) =>
+            Akka.Actor.Props.Create(() => new FileValidatorActor(consoleWriterActor));
+
         private static bool IsFileUri(string path)
         {
             return File.Exists(path);
