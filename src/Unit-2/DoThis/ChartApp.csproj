@@ -64,7 +64,6 @@
     <Compile Include="Actors\ChartingMessages.cs" />
     <Compile Include="Actors\PerformanceCounterActor.cs" />
     <Compile Include="Actors\PerformanceCounterCoordinatorActor.cs" />
-    <Compile Include="ChartDataHelper.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
